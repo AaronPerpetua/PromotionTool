@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "primereact/resources/themes/soho-light/theme.css";
 
-import Provider from "@/components/provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+
 import { PrimeReactProvider, PrimeReactContext } from "primereact/api";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -20,22 +21,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Provider>
-            <div className="flex min-h-screen w-full flex-col">
-              {/* <Header /> */}
-              {children}
-              <Toaster />
-            </div>
-          </Provider>
-        </ThemeProvider>
+        <PrimeReactProvider>
+          <div className="flex min-h-screen w-full flex-col">
+            {/* <Header /> */}
+            {children}
+            <Toaster />
+          </div>
+        </PrimeReactProvider>
       </body>
     </html>
   );

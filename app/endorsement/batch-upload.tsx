@@ -1,6 +1,5 @@
 "use client";
 
-import { add_new_endorsement } from "@/actions/endorsement/add_new_endorsement";
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import {
@@ -17,6 +16,9 @@ import { Label } from "@/components/ui/label";
 import { RefObject, useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useFormStatus } from "react-dom";
+import Papa from "papaparse";
+import prisma from "@/lib/db";
+import { BatchUploadingCsv } from "@/actions/endorsement/batch_uploading_csv";
 
 export function SubmitButton() {
   const { pending } = useFormStatus();
@@ -28,18 +30,33 @@ export function SubmitButton() {
   );
 }
 
-export function NewEndorsementButton() {
+export function BatchUploadCsv() {
   const formRef = useRef() as RefObject<HTMLFormElement>;
   const { toast } = useToast();
 
   const [open, setOpen] = useState(false);
+  const [csvData, setCsvData] = useState([]);
+  const [jsonData, setJsonData] = useState([]);
+
+  const handleFileChange = (event: { target: { files: any[] } }) => {
+    const file = event.target.files[0];
+    const fileType = file.name.split(".").pop().toLowerCase();
+    if (fileType !== "csv") {
+      alert("Please upload a CSV file.");
+      return;
+    }
+    Papa.parse(file, {
+      complete: (result: { data: React.SetStateAction<never[]> }) => {
+        setCsvData(result.data);
+      },
+      header: true,
+      skipEmptyLines: true,
+    });
+  };
 
   const handleAction = async (e: FormData) => {
     try {
-      await add_new_endorsement(e);
-      toast({
-        description: "Endorsement Successfully Added.",
-      });
+      await BatchUploadingCsv(csvData);
 
       formRef?.current?.reset();
       setOpen(false);
@@ -50,7 +67,7 @@ export function NewEndorsementButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">New</Button>
+        <Button variant="outline">Bath Upload</Button>
       </DialogTrigger>
 
       <DialogContent
@@ -58,25 +75,14 @@ export function NewEndorsementButton() {
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
+          <DialogTitle>Upload Endorsement File</DialogTitle>
           <DialogDescription>
-            Make changes to your profile here. Click save when you're done.
+            Please use this <u>CSV template file </u> as your attachement.
           </DialogDescription>
         </DialogHeader>
         <form action={handleAction}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="first_name" className="text-right">
-                First Name
-              </Label>
-              <Input id="first_name" name="first_name" className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="last_name" className="text-right">
-                Last Name
-              </Label>
-              <Input id="last_name" name="last_name" className="col-span-3" />
-            </div>
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Input id="csvfile" type="file" onChange={handleFileChange} />
           </div>
 
           <DialogFooter>

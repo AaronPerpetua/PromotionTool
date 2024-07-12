@@ -58,6 +58,7 @@ export function Header() {
         >
           Products
         </Link>
+
         <Link
           href="#"
           className="text-muted-foreground transition-colors hover:text-foreground"
